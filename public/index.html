@@ -21,18 +21,30 @@
 			renderer.setSize( window.innerWidth, window.innerHeight );
 			document.body.appendChild( renderer.domElement );
 
-			var geometry = new THREE.BoxGeometry( 1, 2, 1 );
-			var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+
+
+			var path = "img/cube/";
+			var format = '.png';
+			var urls = [
+				path + 'side' + format, path + 'side' + format,
+				path + 'front' + format, path + 'top' + format,
+				path + 'back' + format, path + 'side' + format
+			];
+
+			var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+			var textureCube = THREE.ImageUtils.loadTextureCube( urls );
+			var material = new THREE.MeshBasicMaterial( { color: 0xffffff, envMap: textureCube } );
 			var cube = new THREE.Mesh( geometry, material );
 			scene.add( cube );
 
-			camera.position.z = 3;
+			camera.position.z = 2;
+
 
 			function render() {
 				requestAnimationFrame( render );
 				renderer.render( scene, camera );
-				cube.rotation.x += 0.01;
-				cube.rotation.y += 0.01;
+				cube.rotation.x += 0.001;
+				cube.rotation.y += 0.001;
 			}
 			render();
 
