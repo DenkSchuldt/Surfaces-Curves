@@ -18,33 +18,114 @@
 			var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
 			var renderer = new THREE.WebGLRenderer();
+			//renderer.setClearColorHex(0x000000);
 			renderer.setSize( window.innerWidth, window.innerHeight );
 			document.body.appendChild( renderer.domElement );
 
+			renderer.shadowMapEnabled = true;
 
-
-			var path = "img/cube/";
+			/*var path = "img/cube/";
 			var format = '.png';
 			var urls = [
 				path + 'side' + format, path + 'side' + format,
 				path + 'front' + format, path + 'top' + format,
 				path + 'back' + format, path + 'side' + format
-			];
+			];*/
 
-			var geometry = new THREE.BoxGeometry( 1, 1, 1 );
-			var textureCube = THREE.ImageUtils.loadTextureCube( urls );
-			var material = new THREE.MeshBasicMaterial( { color: 0xffffff, envMap: textureCube } );
-			var cube = new THREE.Mesh( geometry, material );
+			//SKYBOX///////////////////
+			var skyMaterial1 = new THREE.MeshPhongMaterial( { map: THREE.ImageUtils.loadTexture('img/skybox/sider.jpg') } );
+			var skyMaterial2 = new THREE.MeshPhongMaterial( { map: THREE.ImageUtils.loadTexture('img/skybox/sidel.jpg') } );
+			var skyMaterial3 = new THREE.MeshPhongMaterial( { map: THREE.ImageUtils.loadTexture('img/skybox/top.jpg') } );
+			var skyMaterial4 = new THREE.MeshPhongMaterial( { map: THREE.ImageUtils.loadTexture('img/skybox/bot.jpg') } );
+			var skyMaterial5 = new THREE.MeshPhongMaterial( { map: THREE.ImageUtils.loadTexture('img/skybox/center.jpg') } );
+			var skyMaterial6 = new THREE.MeshPhongMaterial( { map: THREE.ImageUtils.loadTexture('img/skybox/siderr.jpg') } );
+			var skyMaterials = [skyMaterial1, skyMaterial2, skyMaterial3, skyMaterial4, skyMaterial5, skyMaterial6];
+			var skyFaceMaterial = new THREE.MeshFaceMaterial( skyMaterials );
+			
+			var skyboxGeom = new THREE.CubeGeometry( 800, 800, 800);
+			var skyboxMesh = new THREE.Mesh(skyboxGeom , skyFaceMaterial );
+			skyboxMesh.scale.x = -1;
+			scene.add(skyboxMesh);
+			
+			//luces
+			var ambientLight = new THREE.AmbientLight(0x888888); //creamos una luz ambiental oscura
+			scene.add(ambientLight);//la añadimos a la escena
+			
+			var dirLight5 = new THREE.DirectionalLight(0x777777);
+			dirLight5.position.set(0, 550, 0).normalize();
+			dirLight5.castShadow=true;
+			scene.add(dirLight5);
+			
+			
+			var boxMaterial1 = new THREE.MeshPhongMaterial( { side: THREE.FrontSide, map: THREE.ImageUtils.loadTexture('img/cube/side.png') } );
+			var boxMaterial2 = new THREE.MeshPhongMaterial( { side: THREE.FrontSide, map: THREE.ImageUtils.loadTexture('img/cube/side.png') } );
+			var boxMaterial3 = new THREE.MeshPhongMaterial( { side: THREE.FrontSide, opacity:0, transparent: true, map: THREE.ImageUtils.loadTexture('img/cube/top.png') } );
+			var boxMaterial4 = new THREE.MeshPhongMaterial( { side: THREE.FrontSide, map: THREE.ImageUtils.loadTexture('img/cube/side.png') } );
+			var boxMaterial5 = new THREE.MeshPhongMaterial( { side: THREE.FrontSide, map: THREE.ImageUtils.loadTexture('img/cube/front.png') } );
+			var boxMaterial6 = new THREE.MeshPhongMaterial( { side: THREE.FrontSide, map: THREE.ImageUtils.loadTexture('img/cube/back.png') } );
+			
+			var boxMaterialBack = new THREE.MeshPhongMaterial( { side: THREE.BackSide, map: THREE.ImageUtils.loadTexture('img/cube/side.png') } );
+
+			var boxMaterials = [boxMaterial1, boxMaterial2, boxMaterial3, boxMaterial4, boxMaterial5, boxMaterial6, boxMaterialBack];
+			var boxFaceMaterial = new THREE.MeshFaceMaterial( boxMaterials );
+			
+			var boxGeometry = new THREE.BoxGeometry( 1, 1, 1 );
+			
+			for (var i = 0, len = boxGeometry.faces.length; i < len; i++) {
+				var face = boxGeometry.faces[i].clone();
+				face.materialIndex = 6;
+				boxGeometry.faces.push(face);
+				boxGeometry.faceVertexUvs[0].push(boxGeometry.faceVertexUvs[0][i].slice(0));
+			}
+			
+			//var textureCube = THREE.ImageUtils.loadTextureCube( urls );
+			//var material = new THREE.MeshBasicMaterial( { color: 0xffffff, envMap: textureCube } );
+			var cube = new THREE.Mesh( boxGeometry, boxFaceMaterial );
 			scene.add( cube );
+			
+			var planeGeom = new THREE.PlaneGeometry(1, 1, 2, 2); //definimos un plano de dimensiones 60x60
+			var planeMat1 = new THREE.MeshPhongMaterial({ side: THREE.FrontSide, map: THREE.ImageUtils.loadTexture('img/cube/side.png') });
+			var planeMat2 = new THREE.MeshPhongMaterial({ side: THREE.BackSide, map: THREE.ImageUtils.loadTexture('img/cube/top.png') });
+			
+			var planeMaterials = [planeMat1, planeMat2];
+			var planeFaceMaterial = new THREE.MeshFaceMaterial( planeMaterials );
 
+			for (var i = 0, len = planeGeom.faces.length; i < len; i++) {
+				var face = planeGeom.faces[i].clone();
+				face.materialIndex = 1;
+				planeGeom.faces.push(face);
+				planeGeom.faceVertexUvs[0].push(planeGeom.faceVertexUvs[0][i].slice(0));
+			}
+			
+			var plane =new THREE.Mesh(planeGeom , planeFaceMaterial); //creamos el plano juntando la textura con la forma para obtener nuestro objeto
+			
+			plane.rotation.x=-0.5*3.1416;
+			plane.position.x=0;
+			plane.position.y=0;
+			plane.position.z=0;
+			//scene.add(plane);
+			
+			var parent = new THREE.Object3D();
+			plane.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 0.5, 0 ) );
+			parent.add(plane);
+			parent.position.y=0.5;
+			parent.position.z=-0.5;
+			parent.rotation.x = 0.5*3.1416;
+
+			scene.add(parent);
+			
+			
 			camera.position.z = 2;
+			camera.position.y = 1;
 
 
 			function render() {
 				requestAnimationFrame( render );
 				renderer.render( scene, camera );
-				cube.rotation.x += 0.001;
-				cube.rotation.y += 0.001;
+				//cube.rotation.x += 0.02;
+				//cube.rotation.y += 0.01;
+				//cube.rotation.z -= 0.01;
+				parent.rotation.x -= 0.02;
 			}
 			render();
 
