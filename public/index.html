@@ -24,14 +24,6 @@
 
 			renderer.shadowMapEnabled = true;
 
-			/*var path = "img/cube/";
-			var format = '.png';
-			var urls = [
-				path + 'side' + format, path + 'side' + format,
-				path + 'front' + format, path + 'top' + format,
-				path + 'back' + format, path + 'side' + format
-			];*/
-
 			//SKYBOX///////////////////
 			var skyMaterial1 = new THREE.MeshPhongMaterial( { map: THREE.ImageUtils.loadTexture('img/skybox/sider.jpg') } );
 			var skyMaterial2 = new THREE.MeshPhongMaterial( { map: THREE.ImageUtils.loadTexture('img/skybox/sidel.jpg') } );
@@ -77,32 +69,47 @@
 				boxGeometry.faces.push(face);
 				boxGeometry.faceVertexUvs[0].push(boxGeometry.faceVertexUvs[0][i].slice(0));
 			}
-			
-			//var textureCube = THREE.ImageUtils.loadTextureCube( urls );
-			//var material = new THREE.MeshBasicMaterial( { color: 0xffffff, envMap: textureCube } );
+
 			var cube = new THREE.Mesh( boxGeometry, boxFaceMaterial );
 			scene.add( cube );
 			
 			var planeGeom = new THREE.PlaneGeometry(1, 1, 2, 2); //definimos un plano de dimensiones 60x60
-			var planeMat1 = new THREE.MeshPhongMaterial({ side: THREE.FrontSide, map: THREE.ImageUtils.loadTexture('img/cube/side.png') });
-			var planeMat2 = new THREE.MeshPhongMaterial({ side: THREE.BackSide, map: THREE.ImageUtils.loadTexture('img/cube/top.png') });
+			var planeMat1 = new THREE.MeshPhongMaterial({ side: THREE.DoubleSide, map: THREE.ImageUtils.loadTexture('img/cube/side.png') });
+			var planeMat2 = new THREE.MeshPhongMaterial({ side: THREE.FrontSide, map: THREE.ImageUtils.loadTexture('img/cube/top.png') });
 			
 			var planeMaterials = [planeMat1, planeMat2];
 			var planeFaceMaterial = new THREE.MeshFaceMaterial( planeMaterials );
-
+			/*
+			planeGeom.dynamic = true
+			planeGeom.__dirtyVertices = true;
+			planeGeom.__dirtyNormals = true;
+			
 			for (var i = 0, len = planeGeom.faces.length; i < len; i++) {
 				var face = planeGeom.faces[i].clone();
 				face.materialIndex = 1;
+				face.normal.negate();
+				var temp = face.c;
+				face.c = face.a;
+				face.a = temp;
+				face.vertexNormals.reverse();
+				face.vertexColors.reverse();
+				face.color.toArray().reverse();
+				console.log("X = " + face.a + " Y = " + face.b + " Z = " + face.c)
 				planeGeom.faces.push(face);
 				planeGeom.faceVertexUvs[0].push(planeGeom.faceVertexUvs[0][i].slice(0));
-			}
-			
-			var plane =new THREE.Mesh(planeGeom , planeFaceMaterial); //creamos el plano juntando la textura con la forma para obtener nuestro objeto
-			
-			plane.rotation.x=-0.5*3.1416;
+			}*/
+	
+			var plane =new THREE.Mesh(planeGeom , planeMat1); //creamos el plano juntando la textura con la forma para obtener nuestro objeto
+			//plane.material.side = THREE.DoubleSided
+			plane.rotation.x=0;
 			plane.position.x=0;
 			plane.position.y=0;
 			plane.position.z=0;
+			
+			//plane.flipSided = true;
+			//plane.normalsNeedUpdate = true;
+			//plane.geometry.computeVertexNormals();
+			//plane.geometry.computeFaceNormals();
 			//scene.add(plane);
 			
 			var parent = new THREE.Object3D();
@@ -111,23 +118,132 @@
 			parent.position.y=0.5;
 			parent.position.z=-0.5;
 			parent.rotation.x = 0.5*3.1416;
-
+			
 			scene.add(parent);
 			
-			
+			opening = false;
+			closing = false;
+			open = false;
+			clickingTop = false;
 			camera.position.z = 2;
 			camera.position.y = 1;
+			
+			var raycaster = new THREE.Raycaster();
+			var mouseVector = new THREE.Vector2();
+			var mouseUpVector = new THREE.Vector2();
+			var mouseDownVector = new THREE.Vector2();
+			var mouseMoveVector = new THREE.Vector2();
+			var intersectsMouse;
 
+			// User interaction
+			//window.addEventListener( 'click', click, false );
+			renderer.domElement.addEventListener( 'mousedown', onMouseDown );
+			renderer.domElement.addEventListener( 'mouseup', onMouseUp );
+			renderer.domElement.addEventListener( 'mousemove', onMouseMove);
+			//window.addEventListener( 'mousemove', mouseMove, false );
 
+			var objects = [];
+			objects.push( parent );
+			
 			function render() {
 				requestAnimationFrame( render );
 				renderer.render( scene, camera );
 				//cube.rotation.x += 0.02;
 				//cube.rotation.y += 0.01;
 				//cube.rotation.z -= 0.01;
-				parent.rotation.x -= 0.02;
+				if(opening && parent.rotation.x>0.25*3.1416){
+					parent.rotation.x -= 0.02;
+				}else if (opening){
+					opening = false;
+					open = true;
+				}
+				
+				if(closing && parent.rotation.x<0.5*3.1416){
+					parent.rotation.x += 0.02;
+				}else if (closing){
+					closing = false;
+					open = false;
+				}
 			}
 			render();
+			
+			/*function click( e ) {
+				mouseVector.x = 2 * (e.clientX / window.innerWidth) - 1;
+				mouseVector.y = 1 - 2 * ( e.clientY / window.innerHeight );
+				raycaster.setFromCamera( mouseVector, camera );
+				var intersects = raycaster.intersectObjects( objects , true);
+				console.log("INTERSECTANDO " + intersects.length);
+				
+				if (intersects.length>0){
+					console.log("EN X " + intersects[0].object.position.x + " VS LA TAPA X " + plane.position.x);
+					console.log("EN Y " + intersects[0].object.position.y + " VS LA TAPA Y " + plane.position.y);
+					console.log("EN Z " + intersects[0].object.position.z + " VS LA TAPA Z " + plane.position.z);
+					if(intersects[0].object.position==plane.position && opening == false && open==false){
+						opening = true;
+					}
+					if(intersects[0].object.position==plane.position && closing == false && open==true){
+						closing = true;
+					}
+				}
+			}*/
+			
+			function onMouseDown( e ) {
+				mouseVector.x = 2 * (e.clientX / window.innerWidth) - 1;
+				mouseVector.y = 1 - 2 * ( e.clientY / window.innerHeight );
+				mouseDownVector.x = 2 * (e.clientX / window.innerWidth) - 1;
+				mouseDownVector.y = 1 - 2 * ( e.clientY / window.innerHeight );
+				console.log("hello");
+				raycaster.setFromCamera( mouseDownVector, camera );
+				intersectsMouse = raycaster.intersectObjects( objects , true);
+				console.log("INTERSECTANDO MOUSE " + intersectsMouse.length);
+				if (intersectsMouse.length>0){
+					if(intersectsMouse[0].object.position==plane.position){
+						console.log("GOT IT");
+						clickingTop = true;
+					}
+				}
+				
+			}
+			
+			function onMouseUp( e ) {
+				mouseUpVector.x = 2 * (e.clientX / window.innerWidth) - 1;
+				mouseUpVector.y = 1 - 2 * ( e.clientY / window.innerHeight );
+				if (mouseDownVector.x == mouseUpVector.x && mouseDownVector.y == mouseUpVector.y){
+					raycaster.setFromCamera( mouseDownVector, camera );
+					var intersects = raycaster.intersectObjects( objects , true);
+					console.log("INTERSECTANDO " + intersects.length);
+					
+					if (intersects.length>0){
+						if(intersects[0].object.position==plane.position && opening == false && open==false){
+							opening = true;
+						}
+						if(intersects[0].object.position==plane.position && closing == false && open==true){
+							closing = true;
+						}
+					}
+				}
+				
+				clickingTop = false;
+			}
+			
+			function onMouseMove (e){
+		
+				mouseMoveVector.x = 2 * (e.clientX / window.innerWidth) - 1;
+				mouseMoveVector.y = 1 - 2 * ( e.clientY / window.innerHeight );
+				
+				if (mouseVector.x != mouseMoveVector.x && mouseVector.y != mouseMoveVector.y && clickingTop == true){
+					
+					if(mouseVector.y < mouseMoveVector.y && parent.rotation.x>0.25*3.1416){
+						parent.rotation.x -= 0.1;
+					}
+					if(mouseVector.y > mouseMoveVector.y && parent.rotation.x<0.5*3.1416){
+						parent.rotation.x += 0.1;
+					}
+				}
+				mouseVector.x = 2 * (e.clientX / window.innerWidth) - 1;
+				mouseVector.y = 1 - 2 * ( e.clientY / window.innerHeight );
+			}
+			
 
 		</script>
 	</body>
