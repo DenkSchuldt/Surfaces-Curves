@@ -4,130 +4,29 @@
 		<meta charset=utf-8>
 		<title>Surfaces and Curves</title>
 		<style>
-			body { margin: 0; }
-			canvas { 
-				width: 100%;
-				height: 100%
+			body { 
+				margin: 0; 
+				overflow: hidden;
 			}
 		</style>
 	</head>
 	<body>
 		<script src="js/three.min.js"></script>
+		<script src="js/OrbitControls.js"></script>
 		<script>
-			var scene = new THREE.Scene();
-			var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
-			var renderer = new THREE.WebGLRenderer();
-			//renderer.setClearColorHex(0x000000);
-			renderer.setSize( window.innerWidth, window.innerHeight );
-			document.body.appendChild( renderer.domElement );
+			var scene, camera, renderer;
+			var PI = 3.1416;
+			var WIDTH, HEIGHT;
 
-			renderer.shadowMapEnabled = true;
+			var opening = false;
+			var closing = false;
+			var open = false;
+			var clickingTop = false;
 
-			//SKYBOX///////////////////
-			var skyMaterial1 = new THREE.MeshPhongMaterial( { map: THREE.ImageUtils.loadTexture('img/skybox/sider.jpg') } );
-			var skyMaterial2 = new THREE.MeshPhongMaterial( { map: THREE.ImageUtils.loadTexture('img/skybox/sidel.jpg') } );
-			var skyMaterial3 = new THREE.MeshPhongMaterial( { map: THREE.ImageUtils.loadTexture('img/skybox/top.jpg') } );
-			var skyMaterial4 = new THREE.MeshPhongMaterial( { map: THREE.ImageUtils.loadTexture('img/skybox/bot.jpg') } );
-			var skyMaterial5 = new THREE.MeshPhongMaterial( { map: THREE.ImageUtils.loadTexture('img/skybox/center.jpg') } );
-			var skyMaterial6 = new THREE.MeshPhongMaterial( { map: THREE.ImageUtils.loadTexture('img/skybox/siderr.jpg') } );
-			var skyMaterials = [skyMaterial1, skyMaterial2, skyMaterial3, skyMaterial4, skyMaterial5, skyMaterial6];
-			var skyFaceMaterial = new THREE.MeshFaceMaterial( skyMaterials );
-			
-			var skyboxGeom = new THREE.CubeGeometry( 800, 800, 800);
-			var skyboxMesh = new THREE.Mesh(skyboxGeom , skyFaceMaterial );
-			skyboxMesh.scale.x = -1;
-			scene.add(skyboxMesh);
-			
-			//luces
-			var ambientLight = new THREE.AmbientLight(0x888888); //creamos una luz ambiental oscura
-			scene.add(ambientLight);//la añadimos a la escena
-			
-			var dirLight5 = new THREE.DirectionalLight(0x777777);
-			dirLight5.position.set(0, 550, 0).normalize();
-			dirLight5.castShadow=true;
-			scene.add(dirLight5);
-			
-			
-			var boxMaterial1 = new THREE.MeshPhongMaterial( { side: THREE.FrontSide, map: THREE.ImageUtils.loadTexture('img/cube/side.png') } );
-			var boxMaterial2 = new THREE.MeshPhongMaterial( { side: THREE.FrontSide, map: THREE.ImageUtils.loadTexture('img/cube/side.png') } );
-			var boxMaterial3 = new THREE.MeshPhongMaterial( { side: THREE.FrontSide, opacity:0, transparent: true, map: THREE.ImageUtils.loadTexture('img/cube/top.png') } );
-			var boxMaterial4 = new THREE.MeshPhongMaterial( { side: THREE.FrontSide, map: THREE.ImageUtils.loadTexture('img/cube/side.png') } );
-			var boxMaterial5 = new THREE.MeshPhongMaterial( { side: THREE.FrontSide, map: THREE.ImageUtils.loadTexture('img/cube/front.png') } );
-			var boxMaterial6 = new THREE.MeshPhongMaterial( { side: THREE.FrontSide, map: THREE.ImageUtils.loadTexture('img/cube/back.png') } );
-			
-			var boxMaterialBack = new THREE.MeshPhongMaterial( { side: THREE.BackSide, map: THREE.ImageUtils.loadTexture('img/cube/side.png') } );
-
-			var boxMaterials = [boxMaterial1, boxMaterial2, boxMaterial3, boxMaterial4, boxMaterial5, boxMaterial6, boxMaterialBack];
-			var boxFaceMaterial = new THREE.MeshFaceMaterial( boxMaterials );
-			
-			var boxGeometry = new THREE.BoxGeometry( 1, 1, 1 );
-			
-			for (var i = 0, len = boxGeometry.faces.length; i < len; i++) {
-				var face = boxGeometry.faces[i].clone();
-				face.materialIndex = 6;
-				boxGeometry.faces.push(face);
-				boxGeometry.faceVertexUvs[0].push(boxGeometry.faceVertexUvs[0][i].slice(0));
-			}
-
-			var cube = new THREE.Mesh( boxGeometry, boxFaceMaterial );
-			scene.add( cube );
-			
-			var planeGeom = new THREE.PlaneGeometry(1, 1, 2, 2); //definimos un plano de dimensiones 60x60
-			var planeMat1 = new THREE.MeshPhongMaterial({ side: THREE.DoubleSide, map: THREE.ImageUtils.loadTexture('img/cube/side.png') });
-			var planeMat2 = new THREE.MeshPhongMaterial({ side: THREE.FrontSide, map: THREE.ImageUtils.loadTexture('img/cube/top.png') });
-			
-			var planeMaterials = [planeMat1, planeMat2];
-			var planeFaceMaterial = new THREE.MeshFaceMaterial( planeMaterials );
-			/*
-			planeGeom.dynamic = true
-			planeGeom.__dirtyVertices = true;
-			planeGeom.__dirtyNormals = true;
-			
-			for (var i = 0, len = planeGeom.faces.length; i < len; i++) {
-				var face = planeGeom.faces[i].clone();
-				face.materialIndex = 1;
-				face.normal.negate();
-				var temp = face.c;
-				face.c = face.a;
-				face.a = temp;
-				face.vertexNormals.reverse();
-				face.vertexColors.reverse();
-				face.color.toArray().reverse();
-				console.log("X = " + face.a + " Y = " + face.b + " Z = " + face.c)
-				planeGeom.faces.push(face);
-				planeGeom.faceVertexUvs[0].push(planeGeom.faceVertexUvs[0][i].slice(0));
-			}*/
-	
-			var plane =new THREE.Mesh(planeGeom , planeMat1); //creamos el plano juntando la textura con la forma para obtener nuestro objeto
-			//plane.material.side = THREE.DoubleSided
-			plane.rotation.x=0;
-			plane.position.x=0;
-			plane.position.y=0;
-			plane.position.z=0;
-			
-			//plane.flipSided = true;
-			//plane.normalsNeedUpdate = true;
-			//plane.geometry.computeVertexNormals();
-			//plane.geometry.computeFaceNormals();
-			//scene.add(plane);
-			
-			var parent = new THREE.Object3D();
-			plane.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 0.5, 0 ) );
-			parent.add(plane);
-			parent.position.y=0.5;
-			parent.position.z=-0.5;
-			parent.rotation.x = 0.5*3.1416;
-			
-			scene.add(parent);
-			
-			opening = false;
-			closing = false;
-			open = false;
-			clickingTop = false;
-			camera.position.z = 2;
-			camera.position.y = 1;
-			
+			var plane;
+			var objects = [];
+			var cover = new THREE.Object3D();
 			var raycaster = new THREE.Raycaster();
 			var mouseVector = new THREE.Vector2();
 			var mouseUpVector = new THREE.Vector2();
@@ -135,84 +34,188 @@
 			var mouseMoveVector = new THREE.Vector2();
 			var intersectsMouse;
 
-			// User interaction
-			//window.addEventListener( 'click', click, false );
-			renderer.domElement.addEventListener( 'mousedown', onMouseDown );
-			renderer.domElement.addEventListener( 'mouseup', onMouseUp );
-			renderer.domElement.addEventListener( 'mousemove', onMouseMove);
-			//window.addEventListener( 'mousemove', mouseMove, false );
+			/**
+	     * 
+	     */
+	    function init() {
+	    	scene = new THREE.Scene();
+	     	WIDTH = window.innerWidth;
+				HEIGHT = window.innerHeight;
 
-			var objects = [];
-			objects.push( parent );
-			
-			function render() {
-				requestAnimationFrame( render );
-				renderer.render( scene, camera );
-				//cube.rotation.x += 0.02;
-				//cube.rotation.y += 0.01;
-				//cube.rotation.z -= 0.01;
-				if(opening && parent.rotation.x>0.25*3.1416){
-					parent.rotation.x -= 0.02;
+	      renderer = new THREE.WebGLRenderer({antialias:true});
+	      renderer.setSize(WIDTH, HEIGHT);
+	      document.body.appendChild(renderer.domElement);
+
+	      camera = new THREE.PerspectiveCamera(45, WIDTH / HEIGHT, 0.1, 20000);
+	      camera.position.set(0,6,0);
+	      scene.add(camera);
+
+	      window.addEventListener('resize', function() {
+	        WIDTH = window.innerWidth;
+	        HEIGHT = window.innerHeight;
+	        renderer.setSize(WIDTH, HEIGHT);
+	        camera.aspect = WIDTH / HEIGHT;
+	        camera.updateProjectionMatrix();
+	      });
+
+	      window.addEventListener( 'mousedown', onMouseDown );
+				window.addEventListener( 'mouseup', onMouseUp );
+				window.addEventListener( 'mousemove', onMouseMove);
+
+	      renderer.setClearColor(0x333F47, 1);
+
+				var ambientLight = new THREE.AmbientLight(0x999999);
+				scene.add(ambientLight);
+
+	      controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+	      createCube();
+	      createCover();
+	    }
+
+			/**
+	     * 
+	     */
+	    function animate() {
+	      requestAnimationFrame(animate);
+	      renderer.render(scene, camera);
+	      controls.update();
+
+				if(opening && cover.rotation.x>0.25*PI){
+					cover.rotation.x -= 0.02;
 				}else if (opening){
 					opening = false;
 					open = true;
 				}
 				
-				if(closing && parent.rotation.x<0.5*3.1416){
-					parent.rotation.x += 0.02;
+				if(closing && cover.rotation.x<0.5*PI){
+					cover.rotation.x += 0.02;
 				}else if (closing){
 					closing = false;
 					open = false;
 				}
-			}
-			render();
-			
-			/*function click( e ) {
-				mouseVector.x = 2 * (e.clientX / window.innerWidth) - 1;
-				mouseVector.y = 1 - 2 * ( e.clientY / window.innerHeight );
-				raycaster.setFromCamera( mouseVector, camera );
-				var intersects = raycaster.intersectObjects( objects , true);
-				console.log("INTERSECTANDO " + intersects.length);
-				
-				if (intersects.length>0){
-					console.log("EN X " + intersects[0].object.position.x + " VS LA TAPA X " + plane.position.x);
-					console.log("EN Y " + intersects[0].object.position.y + " VS LA TAPA Y " + plane.position.y);
-					console.log("EN Z " + intersects[0].object.position.z + " VS LA TAPA Z " + plane.position.z);
-					if(intersects[0].object.position==plane.position && opening == false && open==false){
-						opening = true;
-					}
-					if(intersects[0].object.position==plane.position && closing == false && open==true){
-						closing = true;
-					}
+	    }
+
+	    /**
+	     *
+	     */	
+	    function createCube() {
+	    	var boxMaterial1 = new THREE.MeshPhongMaterial({ 
+	    				side: THREE.FrontSide, 
+	    		  	map: THREE.ImageUtils.loadTexture('img/cube/side.png') 
+	    			});
+				var boxMaterial2 = new THREE.MeshPhongMaterial({ 
+							side: THREE.FrontSide, 
+				  		map: THREE.ImageUtils.loadTexture('img/cube/side.png') 
+						});
+				var boxMaterial3 = new THREE.MeshPhongMaterial({ 
+							side: THREE.FrontSide, 
+							opacity: 0, 
+							transparent: true, 
+							map: THREE.ImageUtils.loadTexture('img/cube/top.png')
+						});
+				var boxMaterial4 = new THREE.MeshPhongMaterial({ 
+							side: THREE.FrontSide, 
+							map: THREE.ImageUtils.loadTexture('img/cube/side.png')
+						});
+				var boxMaterial5 = new THREE.MeshPhongMaterial({ 
+							side: THREE.FrontSide, 
+							map: THREE.ImageUtils.loadTexture('img/cube/front.png') 
+						});
+				var boxMaterial6 = new THREE.MeshPhongMaterial({ 
+							side: THREE.FrontSide, 
+							map: THREE.ImageUtils.loadTexture('img/cube/back.png') 
+						});
+				var boxMaterialBack = new THREE.MeshPhongMaterial({ 
+							side: THREE.BackSide, 
+							map: THREE.ImageUtils.loadTexture('img/cube/side.png') 
+						});
+
+				var boxMaterials = [
+						boxMaterial1, 
+						boxMaterial2, 
+						boxMaterial3, 
+						boxMaterial4, 
+						boxMaterial5, 
+						boxMaterial6,
+						boxMaterialBack];
+
+				var boxFaceMaterial = new THREE.MeshFaceMaterial( boxMaterials );
+				var boxGeometry = new THREE.BoxGeometry( 1, 1, 1 );
+		
+				for (var i = 0, len = boxGeometry.faces.length; i < len; i++) {
+					var face = boxGeometry.faces[i].clone();
+							face.materialIndex = 6;
+					boxGeometry.faces.push(face);
+					boxGeometry.faceVertexUvs[0].push(boxGeometry.faceVertexUvs[0][i].slice(0));
 				}
-			}*/
-			
+
+				var cube = new THREE.Mesh( boxGeometry, boxFaceMaterial );
+				scene.add( cube );
+	    }
+
+	    /**
+	     *
+	     */
+	    function createCover() {
+				var planeGeom = new THREE.PlaneGeometry(1, 1, 2, 2);
+				var planeMat1 = new THREE.MeshPhongMaterial({ 
+							side: THREE.DoubleSide, 
+							map: THREE.ImageUtils.loadTexture('img/cube/side.png') 
+						});
+				var planeMat2 = new THREE.MeshPhongMaterial({ 
+							side: THREE.FrontSide, 
+							map: THREE.ImageUtils.loadTexture('img/cube/top.png') 
+						});			
+				
+				var planeMaterials = [
+							planeMat1, 
+							planeMat2 ];
+				
+				var planeFaceMaterial = new THREE.MeshFaceMaterial( planeMaterials );
+
+				plane = new THREE.Mesh(planeGeom , planeMat1);
+				plane.rotation.x=0;
+				plane.position.x=0;
+				plane.position.y=0;
+				plane.position.z=0; 
+				plane.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 0.5, 0 ) );
+
+				cover.add(plane);
+				cover.position.y=0.5;
+				cover.position.z=-0.5;
+				cover.rotation.x = 0.5*PI;
+				scene.add(cover);
+
+				objects.push( cover );
+	    }
+
+	    /**
+	     *
+	     */
 			function onMouseDown( e ) {
 				mouseVector.x = 2 * (e.clientX / window.innerWidth) - 1;
 				mouseVector.y = 1 - 2 * ( e.clientY / window.innerHeight );
 				mouseDownVector.x = 2 * (e.clientX / window.innerWidth) - 1;
 				mouseDownVector.y = 1 - 2 * ( e.clientY / window.innerHeight );
-				console.log("hello");
 				raycaster.setFromCamera( mouseDownVector, camera );
 				intersectsMouse = raycaster.intersectObjects( objects , true);
-				console.log("INTERSECTANDO MOUSE " + intersectsMouse.length);
 				if (intersectsMouse.length>0){
 					if(intersectsMouse[0].object.position==plane.position){
-						console.log("GOT IT");
 						clickingTop = true;
 					}
 				}
-				
 			}
 			
+			/**
+			 *
+			 */
 			function onMouseUp( e ) {
 				mouseUpVector.x = 2 * (e.clientX / window.innerWidth) - 1;
 				mouseUpVector.y = 1 - 2 * ( e.clientY / window.innerHeight );
 				if (mouseDownVector.x == mouseUpVector.x && mouseDownVector.y == mouseUpVector.y){
 					raycaster.setFromCamera( mouseDownVector, camera );
 					var intersects = raycaster.intersectObjects( objects , true);
-					console.log("INTERSECTANDO " + intersects.length);
-					
 					if (intersects.length>0){
 						if(intersects[0].object.position==plane.position && opening == false && open==false){
 							opening = true;
@@ -222,28 +225,30 @@
 						}
 					}
 				}
-				
 				clickingTop = false;
 			}
 			
+			/**
+			 *
+			 */
 			function onMouseMove (e){
-		
 				mouseMoveVector.x = 2 * (e.clientX / window.innerWidth) - 1;
 				mouseMoveVector.y = 1 - 2 * ( e.clientY / window.innerHeight );
-				
 				if (mouseVector.x != mouseMoveVector.x && mouseVector.y != mouseMoveVector.y && clickingTop == true){
-					
-					if(mouseVector.y < mouseMoveVector.y && parent.rotation.x>0.25*3.1416){
-						parent.rotation.x -= 0.1;
+					if(mouseVector.y < mouseMoveVector.y && cover.rotation.x>0.25*3.1416){
+						cover.rotation.x -= 0.1;
 					}
-					if(mouseVector.y > mouseMoveVector.y && parent.rotation.x<0.5*3.1416){
-						parent.rotation.x += 0.1;
+					if(mouseVector.y > mouseMoveVector.y && cover.rotation.x<0.5*3.1416){
+						cover.rotation.x += 0.1;
 					}
 				}
 				mouseVector.x = 2 * (e.clientX / window.innerWidth) - 1;
 				mouseVector.y = 1 - 2 * ( e.clientY / window.innerHeight );
 			}
-			
+
+
+			init();
+			animate();
 
 		</script>
 	</body>
