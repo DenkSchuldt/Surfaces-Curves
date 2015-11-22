@@ -72,6 +72,7 @@
 			var PI = 3.1416;
 			var WIDTH, HEIGHT;
 
+			var automatic = false;
 			var opening = false;
 			var closing = false;
 			var open = false;
@@ -162,18 +163,33 @@
 	      renderer.render(scene, camera);
 	      controls.update();
 
-				if(opening && cover.rotation.x>0.25*PI){
-					cover.rotation.x -= 0.02;
-				}else if (opening){
-					opening = false;
-					open = true;
-				}
-				
-				if(closing && cover.rotation.x<0.5*PI){
-					cover.rotation.x += 0.02;
-				}else if (closing){
-					closing = false;
-					open = false;
+	      if (automatic) {
+	      	if (opening) {
+						if(cover.rotation.x>0.25*PI) {
+							cover.rotation.x -= 0.02;
+						} else {
+							opening = false;
+						}
+					} else {
+						if(cover.rotation.x<0.5*PI) {
+							cover.rotation.x += 0.02;
+						} else {
+							opening = true;
+						}
+					}
+	      } else {
+					if(opening && cover.rotation.x>0.25*PI){
+						cover.rotation.x -= 0.02;
+					}else if (opening){
+						opening = false;
+						open = true;
+					}
+					if(closing && cover.rotation.x<0.5*PI){
+						cover.rotation.x += 0.02;
+					}else if (closing){
+						closing = false;
+						open = false;
+					}
 				}
 
 				// Bezier looking to the object
@@ -542,6 +558,7 @@
 				$(".option").each(function( index ) {
   				$( this ).css("background-color", "transparent");
 				});
+				automatic = false;
 				bezierToObject = false;
 				standardToObject = false;
 				standardToXAxis = false;
@@ -557,12 +574,12 @@
 				$(".automatic").click(function() {
 					formatOptions();
 					$( this ).css("background-color", "#fff");
-					// Code here
+					automatic = true;
+					opening = !opening;
 				});
 				$(".manual").click(function() {
 					formatOptions();
 					$( this ).css("background-color", "#fff");
-					// Code here
 				});
 				$(".standard-object").click(function() {
 					formatOptions();
