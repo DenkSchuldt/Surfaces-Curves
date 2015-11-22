@@ -5,14 +5,67 @@
 		<title>Surfaces and Curves</title>
 		<style>
 			body { 
-				margin: 0; 
+				margin: 0;
+				padding: 0;
 				overflow: hidden;
 			}
+			.options {
+				background: rgba(255,255,255, 0.2);
+				position: fixed;
+				margin: 0;
+				padding: 15px;
+				top: 15px;
+				right: 15px;
+				font-size: 1em;
+				font-family: arial;
+				border-radius: 3px;
+			}
+				.options h3 {
+					margin: 0;
+					padding: 0 0 10px 0;
+					border-bottom: 1px solid #999;
+				}
+				.options h4 { margin-bottom: 0; }
+				.options ul { 
+					margin-top: 5px; 
+					padding: 0;
+				}
+				.options .option { 
+					list-style-type: none;
+					margin-top: 5px;
+					padding: 10px;
+					cursor: pointer;
+					margin-top: -5px;
+					border-radius: 3px;
+				}
+				.options .option:hover {
+					background-color: #fff!important;
+				}
 		</style>
 	</head>
 	<body>
+		<div class="options">
+			<h3>Rendering options:</h3>
+			<h4>Cover movement:</h4>
+			<ul>
+				<li class="option automatic">Automatic</li>
+				<li class="option manual">Manual</li>
+			</ul>
+			<h4>Standard camera movement:</h4>
+			<ul>
+				<li class="option standard-object">Looking to the object</li>
+				<li class="option standard-x-axis">Perpendicular to X axis</li>
+			</ul>
+			<h4>Bezier camera movement:</h4>
+			<ul>
+				<li class="option bezier-object">Looking to the object</li>
+				<li class="option bezier-x-axis">Perpendicular to X axis</li>
+				<li class="option bezier-curve">Perpendicular to the curve</li>
+			</ul>
+		</div>
 		<script src="js/three.min.js"></script>
 		<script src="js/OrbitControls.js"></script>
+		<script src="js/jquery-2.1.4.min.js"></script>
 		<script>
 
 			var scene, camera, renderer;
@@ -47,7 +100,8 @@
 	      document.body.appendChild(renderer.domElement);
 
 	      camera = new THREE.PerspectiveCamera(45, WIDTH / HEIGHT, 0.1, 20000);
-	      camera.position.set(0,6,0);
+	      camera.position.set(2,2,2);
+	      //camera.rotation.set(0,0,6);
 	      scene.add(camera);
 
 	      window.addEventListener('resize', function() {
@@ -71,6 +125,7 @@
 
 	      createCube();
 	      createCover();
+	      optionListeners();
 	    }
 
 			/**
@@ -94,6 +149,7 @@
 					closing = false;
 					open = false;
 				}
+
 	    }
 
 	    /**
@@ -246,10 +302,51 @@
 				mouseVector.y = 1 - 2 * ( e.clientY / window.innerHeight );
 			}
 
+			/**
+       *
+			 */
+			function optionListeners() {
+				$(".automatic").click(function() {
+					formatOptions();
+					$( this ).css("background-color", "#fff");
+				});
+				$(".manual").click(function() {
+					formatOptions();
+					$( this ).css("background-color", "#fff");
+				});
+				$(".standard-object").click(function() {
+					formatOptions();
+					$( this ).css("background-color", "#fff");
+				});
+				$(".standard-x-axis").click(function() {
+					formatOptions();
+					$( this ).css("background-color", "#fff");
+				});
+				$(".bezier-object").click(function() {
+					formatOptions();
+					$( this ).css("background-color", "#fff");
+				});
+				$(".bezier-x-axis").click(function() {
+					formatOptions();
+					$( this ).css("background-color", "#fff");
+				});
+				$(".bezier-curve").click(function() {
+					formatOptions();
+					$( this ).css("background-color", "#fff");
+				});
+			}
+
+			/**
+			 *
+			 */
+			function formatOptions() {
+				$(".option").each(function( index ) {
+  				$( this ).css("background-color", "transparent");
+				});
+			}
 
 			init();
 			animate();
-
 		</script>
 	</body>
 </html>
