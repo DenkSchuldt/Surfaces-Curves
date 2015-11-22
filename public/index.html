@@ -33,8 +33,15 @@
 			var mouseDownVector = new THREE.Vector2();
 			var mouseMoveVector = new THREE.Vector2();
 			var intersectsMouse;
+			var initTime = Date.now();
 
-			/**
+			var pathLinePoints = 15000; //Cantidad de puntos que tendra el segmento dibujado de la curva de bezier
+			var point1 = new THREE.Vector3(100,100,5); //Punto inicial de la curva de bezier
+		  	var point2 = new THREE.Vector3(-210,-20,-180);
+		  	var point3 = new THREE.Vector3(200,53,200);
+		  	var point4 = new THREE.Vector3(1,5,2); //Punto final de la curva de bezier
+
+		/**
 	     * 
 	     */
 	    function init() {
@@ -48,6 +55,7 @@
 
 	      camera = new THREE.PerspectiveCamera(45, WIDTH / HEIGHT, 0.1, 20000);
 	      camera.position.set(0,6,0);
+	      camera.lookAt(scene.position);//Apuntamos el FOV de la camara hacia la escena
 	      scene.add(camera);
 
 	      window.addEventListener('resize', function() {
@@ -70,6 +78,7 @@
 		  renderer.shadowMapType = THREE.PCFSoftShadowMap;
 	      controls = new THREE.OrbitControls(camera, renderer.domElement);
 
+	      drawBezierPath(point1, point2, point3, point4);
 	      createCube();
 	      createCover();
 	      createObjectCube();
@@ -85,6 +94,8 @@
 	      requestAnimationFrame(animate);
 	      renderer.render(scene, camera);
 	      controls.update();
+	      time = parseInt(Date.now() - initTime);
+	      segmentPoints = createBezierCurveSegmentPoints(point1, point2, point3, point4);
 
 				if(opening && cover.rotation.x>0.25*PI){
 					cover.rotation.x -= 0.02;
@@ -99,6 +110,12 @@
 					closing = false;
 					open = false;
 				}
+
+				if (time<pathLinePoints){ //Mientras el tiempo transcurrido sea menor al numero de puntos en el segmento de la curva de bezier
+					camera.position.x = segmentPoints[time].x;//Se obtiene el valor de X, Y y Z de un punto del segmento
+					camera.position.y = segmentPoints[time].y;//de acuerdo al tiempo transcurrido para posicionar la camara en ese punto
+					camera.position.z = segmentPoints[time].z;
+		  		}
 	    }
 		
 	    /**
@@ -163,7 +180,6 @@
 				}
 
 				var cube = new THREE.Mesh( boxGeometry, boxFaceMaterial );
-				//cube.castShadow = true;
 				cube.receiveShadow = true;
 				scene.add( cube );
 	    }
@@ -329,14 +345,33 @@
 				var spotlight = new THREE.SpotLight( 0xFFAA88);
 				spotlight.target.position.set(0,0,0);
 				spotlight.position.set(0,100, 0); //definimos la posicion la de luz artificial
-				//spotlight.shadowCameraNear = 0.01;
 				spotlight.castShadow = true;
 				spotlight.shadowDarkness = 2;
-
-				//spotlight.shadowCameraVisible = true;
 				scene.add(spotlight);
 			}
-			 
+
+			/**
+			 *
+			 */
+			function createBezierCurveSegmentPoints(point1, point2, point3, point4){
+				var bezierCurve = new THREE.CubicBezierCurve3(point1, point2, point3, point4); //Se crea una curva de bezier con los puntos dados
+				var curvePoints = bezierCurve.getPoints(pathLinePoints); //Se obtienen los puntos de la curva creada, para crear la trayectoria de la camara
+				return curvePoints;
+			}
+
+			/**
+			 *
+			 */
+			function drawBezierPath(point1, point2, point3, point4){
+		 		var bezierPathGeom = new THREE.Geometry();
+		  		var bezierPathMat = new THREE.LineBasicMaterial({ color: 0xff6666 });
+		  		segmentPoints = createBezierCurveSegmentPoints(point1, point2, point3, point4);
+		  		for(var i = 0; i < segmentPoints.length; i++){ //Para cada punto del segmento de la curva de bezier
+		  			bezierPathGeom.vertices.push(segmentPoints[i]);  //Se agrega dicho punto a la geometria del dibujo de la curva como vertice
+		  		}
+		  		var bezierPath = new THREE.Line(bezierPathGeom, bezierPathMat); //Se crea una linea con la geometria especificada y un material simple
+		  		scene.add(bezierPath);
+			}
 
 			init();
 			animate();
