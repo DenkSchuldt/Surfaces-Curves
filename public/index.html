@@ -66,7 +66,8 @@
 
 				var ambientLight = new THREE.AmbientLight(0x999999);
 				scene.add(ambientLight);
-
+		  renderer.shadowMapEnabled = true;
+		  renderer.shadowMapType = THREE.PCFSoftShadowMap;
 	      controls = new THREE.OrbitControls(camera, renderer.domElement);
 
 	      createCube();
@@ -74,6 +75,7 @@
 	      createObjectCube();
 	      createObjectSphere();
 	      createObjectPyramid();
+	      createSpotlight();
 	    }
 
 			/**
@@ -98,39 +100,46 @@
 					open = false;
 				}
 	    }
-
+		
 	    /**
 	     *
 	     */	
 	    function createCube() {
 	    	var boxMaterial1 = new THREE.MeshPhongMaterial({ 
 	    				side: THREE.FrontSide, 
+	    				shading: THREE.SmoothShading,
 	    		  	map: THREE.ImageUtils.loadTexture('img/cube/side.png') 
 	    			});
 				var boxMaterial2 = new THREE.MeshPhongMaterial({ 
 							side: THREE.FrontSide, 
+							shading: THREE.SmoothShading,
 				  		map: THREE.ImageUtils.loadTexture('img/cube/side.png') 
 						});
 				var boxMaterial3 = new THREE.MeshPhongMaterial({ 
 							side: THREE.FrontSide, 
 							opacity: 0, 
-							transparent: true, 
+							transparent: true,
+							shading: THREE.SmoothShading,
 							map: THREE.ImageUtils.loadTexture('img/cube/top.png')
 						});
 				var boxMaterial4 = new THREE.MeshPhongMaterial({ 
 							side: THREE.FrontSide, 
+							shading: THREE.SmoothShading,
 							map: THREE.ImageUtils.loadTexture('img/cube/side.png')
 						});
 				var boxMaterial5 = new THREE.MeshPhongMaterial({ 
 							side: THREE.FrontSide, 
+							shading: THREE.SmoothShading,
 							map: THREE.ImageUtils.loadTexture('img/cube/front.png') 
 						});
 				var boxMaterial6 = new THREE.MeshPhongMaterial({ 
 							side: THREE.FrontSide, 
+							shading: THREE.SmoothShading,
 							map: THREE.ImageUtils.loadTexture('img/cube/back.png') 
 						});
 				var boxMaterialBack = new THREE.MeshPhongMaterial({ 
-							side: THREE.BackSide, 
+							side: THREE.BackSide,
+							shading: THREE.SmoothShading,
 							map: THREE.ImageUtils.loadTexture('img/cube/side.png') 
 						});
 
@@ -154,6 +163,8 @@
 				}
 
 				var cube = new THREE.Mesh( boxGeometry, boxFaceMaterial );
+				//cube.castShadow = true;
+				cube.receiveShadow = true;
 				scene.add( cube );
 	    }
 
@@ -183,6 +194,7 @@
 				plane.position.y=0;
 				plane.position.z=0; 
 				plane.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 0.5, 0 ) );
+				plane.castShadow = true;
 
 				cover.add(plane);
 				cover.position.y=0.5;
@@ -254,8 +266,15 @@
 			 */
 			function createObjectCube(){
 				var cubeGeom = new THREE.CubeGeometry(0.3, 0.3, 0.3);//definimos las dimensiones del cubo x, y, z
-				var cubeMat = new THREE.MeshPhongMaterial({map: THREE.ImageUtils.loadTexture('img/objects/marble.jpg')}); //inicializamos una textura de marmol
+				var cubeMat = new THREE.MeshPhongMaterial({
+					shininess	: 300, 
+					specular	: 0x33AA33,
+					shading 	: THREE.SmoothShading, 
+					map 		: THREE.ImageUtils.loadTexture('img/objects/marble.jpg')
+				}); //inicializamos una textura de marmol
 				var cube = new THREE.Mesh(cubeGeom, cubeMat);//juntamos la textura y la forma para obtener el objeto
+				cube.receiveShadow = true;
+				cube.castShadow = true;
 				cube.position.x=0.25;//definimos la posición inicial
 				cube.position.y=0.1;
 				cube.position.z=0.25;
@@ -267,12 +286,19 @@
 			 */
 			function createObjectSphere(){
 				var sphereGeom = new THREE.SphereGeometry(0.2, 20, 20); //Definimos las dimensiones de la esfera
-				var sphereMat = new THREE.MeshPhongMaterial({map: THREE.ImageUtils.loadTexture('img/objects/gold.png')});//inicializamos textura de oro
+				var sphereMat = new THREE.MeshPhongMaterial({
+					shininess	: 300, 
+					specular	: 0x33AA33,
+					shading 	: THREE.SmoothShading,
+					map 		:  THREE.ImageUtils.loadTexture('img/objects/gold.png')
+				});//inicializamos textura de oro
 				var sphere = new THREE.Mesh(sphereGeom, sphereMat);//las juntamos en una figura
+				sphere.receiveShadow = true;
+				sphere.castShadow = true;
 				sphere.rotation.z=2;//Rotamos la esfera para ocultar la union radial de la textura
-				sphere.position.x=0.2;//definimos la posición inicial
-				sphere.position.y=0.1;
-				sphere.position.z=-0.18;
+				sphere.position.x=-0.15;//definimos la posición inicial
+				sphere.position.y=-0.1;
+				sphere.position.z=0.2;
 				scene.add(sphere);
 			}
 
@@ -281,14 +307,36 @@
 			 */
 			function createObjectPyramid(){
 				var pyramidGeom = new THREE.CylinderGeometry( 0, 0.3, 0.6, 4, 1 );//definimos las dimensiones de un cilindro, donde 4 representa el numero de puntos de la base y 0 representa n+1 puntos de la cara superior, obteniendo una pirámide de base cuadrada
-				var pyramidMat = new THREE.MeshPhongMaterial({map: THREE.ImageUtils.loadTexture('img/objects/block.jpg')}); //creamos una textura de bloques
+				var pyramidMat = new THREE.MeshPhongMaterial({
+					specular	: 0x33AA33,
+					shading 	: THREE.SmoothShading,
+					map 		: THREE.ImageUtils.loadTexture('img/objects/block.jpg')
+				}); //creamos una textura de bloques
 				var pyramid = new THREE.Mesh(pyramidGeom, pyramidMat);//juntamos las dimensiones geométricas con la textura
+				pyramid.receiveShadow = true;
+				pyramid.castShadow = true;
 				pyramid.rotation.y=1;
-				pyramid.position.x=-0.15;//definimos la posición inicial de la figura.
+				pyramid.position.x=0.2;//definimos la posición inicial de la figura.
 				pyramid.position.y=0.1;
-				pyramid.position.z=0;
+				pyramid.position.z=-0.16;
 				scene.add(pyramid);
 			}
+
+			/**
+			 *
+			 */
+			function createSpotlight(){
+				var spotlight = new THREE.SpotLight( 0xFFAA88);
+				spotlight.target.position.set(0,0,0);
+				spotlight.position.set(0,100, 0); //definimos la posicion la de luz artificial
+				//spotlight.shadowCameraNear = 0.01;
+				spotlight.castShadow = true;
+				spotlight.shadowDarkness = 2;
+
+				//spotlight.shadowCameraVisible = true;
+				scene.add(spotlight);
+			}
+			 
 
 			init();
 			animate();
