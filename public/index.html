@@ -71,6 +71,9 @@
 
 	      createCube();
 	      createCover();
+	      createObjectCube();
+	      createObjectSphere();
+	      createObjectPyramid();
 	    }
 
 			/**
@@ -246,6 +249,46 @@
 				mouseVector.y = 1 - 2 * ( e.clientY / window.innerHeight );
 			}
 
+			/**
+			 *
+			 */
+			function createObjectCube(){
+				var cubeGeom = new THREE.CubeGeometry(0.3, 0.3, 0.3);//definimos las dimensiones del cubo x, y, z
+				var cubeMat = new THREE.MeshPhongMaterial({map: THREE.ImageUtils.loadTexture('img/objects/marble.jpg')}); //inicializamos una textura de marmol
+				var cube = new THREE.Mesh(cubeGeom, cubeMat);//juntamos la textura y la forma para obtener el objeto
+				cube.position.x=0.25;//definimos la posición inicial
+				cube.position.y=0.1;
+				cube.position.z=0.25;
+				scene.add(cube);
+			}
+
+			/**
+			 *
+			 */
+			function createObjectSphere(){
+				var sphereGeom = new THREE.SphereGeometry(0.2, 20, 20); //Definimos las dimensiones de la esfera
+				var sphereMat = new THREE.MeshPhongMaterial({map: THREE.ImageUtils.loadTexture('img/objects/gold.png')});//inicializamos textura de oro
+				var sphere = new THREE.Mesh(sphereGeom, sphereMat);//las juntamos en una figura
+				sphere.rotation.z=2;//Rotamos la esfera para ocultar la union radial de la textura
+				sphere.position.x=0.2;//definimos la posición inicial
+				sphere.position.y=0.1;
+				sphere.position.z=-0.18;
+				scene.add(sphere);
+			}
+
+			 /**
+			 *
+			 */
+			function createObjectPyramid(){
+				var pyramidGeom = new THREE.CylinderGeometry( 0, 0.3, 0.6, 4, 1 );//definimos las dimensiones de un cilindro, donde 4 representa el numero de puntos de la base y 0 representa n+1 puntos de la cara superior, obteniendo una pirámide de base cuadrada
+				var pyramidMat = new THREE.MeshPhongMaterial({map: THREE.ImageUtils.loadTexture('img/objects/block.jpg')}); //creamos una textura de bloques
+				var pyramid = new THREE.Mesh(pyramidGeom, pyramidMat);//juntamos las dimensiones geométricas con la textura
+				pyramid.rotation.y=1;
+				pyramid.position.x=-0.15;//definimos la posición inicial de la figura.
+				pyramid.position.y=0.1;
+				pyramid.position.z=0;
+				scene.add(pyramid);
+			}
 
 			init();
 			animate();
